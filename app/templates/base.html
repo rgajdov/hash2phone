@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+
+        {% if title %}
+        <title>{{ title }} - Phone Database</title>
+        {% else %}
+        <title>Phone Database</title>
+        {% endif %}
+
+        <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    </head>
+    <body>
+        <header>
+            <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+                <a class="navbar-brand">Phone database</a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarCollapse">
+                    <ul class="navbar-nav mr-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('index') }}">Home <span class="sr-only">(current)</span></a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('query_form') }}">Get phone info</a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        </header>
+
+        <div>
+            <hr>
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            <ul>
+                {% for message in messages %}
+                <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+            {% endwith %}
+        </div>
+
+        {% block content %}{% endblock %}
+
+        <!--<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>-->
+        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        <script>window.jQuery || document.write('<script src="{{ url_for('static', filename='js/jquery.js') }}">\x3C/script>')</script>
+
+        <script type=text/javascript>
+            $SCRIPT_ROOT = {{ request.script_root|tojson }};
+        </script>
+
+        <script type=text/javascript>
+          $(document).ready(function() {
+
+            $('#phone-info').hide();
+            $('#json-error').hide();
+            $('#phone-type').hide();
+            $("input[id='inlineRadio1']").prop("checked", true);
+
+            $('#inlineRadio1').click(function() {
+                $("#phone-type").hide();
+                $('input[name="queryString"]').attr("placeholder", "Hash value");
+              });
+
+            $('#inlineRadio2').click(function() {
+                $("#phone-type").show();
+                $('input[name="queryString"]').attr("placeholder", "Phone number");
+              });
+
+            var pathname_url = window.location.pathname;
+            var href_url = window.location.href;
+            $(".navbar-nav li").each(function () {
+                var link = $(this).find("a").attr("href");
+                if(pathname_url == link || href_url == link) {
+                    $(this).addClass("active");
+                }
+            });
+          });
+         </script>
+
+        <script type=text/javascript>
+          $(document).ready(function() {
+            $('#form-query').submit(function() {
+              $.getJSON($SCRIPT_ROOT + '/getinfo', {
+                t: $("input[name='queryType']:checked").val(),
+                q: $.trim($('input[name="queryString"]').val()),
+              }, function(data) {
+                $('input[name="queryString"]').val('');
+                $("#phone-info tr").remove();
+                $.each(data, function(key, val) {
+                    $('#phone-info').append('<tr><td>' + key + '</td><td>' + val + '</td></tr>');
+                });
+                $('#phone-info').show();
+                // $("input[id='inlineRadio1']").prop("checked", true);
+              })
+              .done(function() {
+                $('#json-error').hide();
+                $('#json-error').text('');
+              })
+              .fail(function() {
+                $("#phone-info tr").remove();
+                $('input[name="queryString"]').val('');
+                $('#json-error').show();
+                $('#json-error').text('');
+                $('#json-error').append('Result of hash value do not match pattern "+79XXXXXXXXX"!');
+                // $("input[id='inlineRadio1']").prop("checked", true);
+               })
+              return false;
+            });
+          });
+        </script>
+
+    </body>
+</html>

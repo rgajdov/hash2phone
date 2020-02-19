@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<main role="main">
+  <section class="jumbotron text-center">
+    <div class="container">
+        <h1>Get phone info</h1>
+        <p class="lead text-muted">Service for searching phone information by sha256 hash value or phone number. Please, input sha256 hash value or phone number in "10-digits" format.</p>
+        <form id="form-query" class="form-query" action="#" method="POST" onsubmit="return false">
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="queryType" id="inlineRadio1" value="1" checked>
+                <label class="form-check-label" for="inlineRadio1">by sha256 hash</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="queryType" id="inlineRadio2" value="2">
+                <label class="form-check-label" for="inlineRadio2">by phone number</label>
+            </div>
+            <div>
+                <br />
+            </div>
+
+            <div class="input-group mb-3">
+                <div id="phone-type" class="input-group-prepend">
+                    <span class="input-group-text" id="basic-addon1">+7</span>
+                </div>
+                <input type="text" id="queryString" name="queryString" class="form-control" placeholder="Hash value" aria-label="Recipient's username" aria-describedby="button-addon2" autofocus>
+                <div class="input-group-append">
+                    <button class="btn btn-outline-secondary" type="submit" id="querySubmit">Find</button>
+                </div>
+            </div>
+
+            <div>
+                <br />
+            </div>
+        </form>
+        <div class="text-center">
+            <table class="table table-striped text-center" id="phone-info">
+
+            </table>
+        </div>
+        <div id="json-error" class="alert alert-danger" role="alert">
+            <h1></h1>
+        </div>
+    </div>
+  </section>
+</main>
+
+{% endblock %}

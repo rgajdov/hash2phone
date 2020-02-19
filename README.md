@@ -17,8 +17,9 @@ export FLASK_APP=phonedb.py
 
 ### Запуск:
 ```
-flask run --host 127.0.0.1
+flask run --host <IP_ADDRESS>
 ```
+где <IP_ADDRESS> - адрес хоста, на котором размещается сервис
 
 ### Запуск в docker-контейнере:
 
@@ -28,3 +29,6 @@ cd phonedb/
 docker build -t phonedb:latest .
 docker run --name phonedb -d -p 5000:5000 -v /mnt/data/DB/phonedb:/mnt/data/DB/phonedb --rm phonedb:latest
 ```
+
+### Finally:
+Открыть страницу в браузере по адресу http://<IP_ADDRESS>:5000/database/

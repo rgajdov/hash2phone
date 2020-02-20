@@ -7,7 +7,17 @@ import requests
 import json
 
 DATABASE = r"/mnt/data/DB/phone2hash/data.db"
-API_URL = "http://www.megafon.ru/api/mfn/info?msisdn="
+API_URL = "https://www.megafon.ru/api/mfn/info"
+
+HEADERS = {
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+    'Accept-Encoding': 'gzip, deflate',
+    'Accept-Language': 'ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3',
+    'Connection': 'keep-alive',
+    'Host': 'www.megafon.ru',
+    'Upgrade-Insecure-Requests': '1',
+    'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:73.0) Gecko/20100101 Firefox/73.0',
+}
 
 
 def create_connection(db_file):
@@ -53,8 +63,13 @@ def get_phone_by_hash(conn, hash_number):
 def get_phone_info(phone_number):
     if phone_number is not None:
         phone = phone_number[1:]
-        response = requests.get(API_URL + phone)
-        data = json.loads(response.text)
+        payload = {'msisdn': phone}
+        data = {}
+        try:
+            response = requests.get(API_URL, params=payload)
+            data = json.loads(response.text)
+        except requests.exceptions.TooManyRedirects:
+            abort(500, description="Too many redirects")
         return data
     else:
         return None

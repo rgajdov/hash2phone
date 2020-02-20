@@ -60,6 +60,11 @@ def get_phone_info(phone_number):
         return None
 
 
+@app.errorhandler(400)
+def query_format_error(e):
+    return jsonify(error=str(e)), 400
+
+
 @app.errorhandler(404)
 def resource_not_found(e):
     return jsonify(error=str(e)), 404
@@ -84,18 +89,23 @@ def getinfo():
     query_type = request.args.get('t', 0)
     query_string = request.args.get('q', 0)
 
+    pattern_hash = '^[A-Fa-f0-9]{64}$'
+    pattern_phone = '^9\d{9}$'
+
     conn = create_connection(DATABASE)
 
     if query_type == "1":
-        data = get_phone_info(get_phone_by_hash(conn, query_string))
-        if data is not None:
-            data['phone'] = get_phone_by_hash(conn, query_string)
-            data['hash'] = query_string
+        if re.search(pattern_hash, query_string):
+            data = get_phone_info(get_phone_by_hash(conn, query_string))
+            if data is not None:
+                data['phone'] = get_phone_by_hash(conn, query_string)
+                data['hash'] = query_string
+            else:
+                abort(404, description="Unknown hash value")
         else:
-            abort(404, description="Unknown hash value")
-    else:
-        pattern = '^9\d{9}$'
-        if re.search(pattern, query_string):
+            abort(400, description="SHA-256 format error")
+    elif query_type == "2":
+        if re.search(pattern_phone, query_string):
             phone = "+7" + query_string
             data = get_phone_info(phone)
             if data is not None:
@@ -104,7 +114,9 @@ def getinfo():
             else:
                 abort(404, description="Unknown phone number")
         else:
-            abort(404, description="Unknown phone number")
+            abort(400, description="Phone number format error")
+    else:
+        abort(400, description="Unknown query type")
 
     conn.close()
 

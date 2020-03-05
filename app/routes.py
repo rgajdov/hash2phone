@@ -19,6 +19,18 @@ HEADERS = {
     'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:73.0) Gecko/20100101 Firefox/73.0',
 }
 
+PHONE_NAMES = {
+    '+79628894149': 'Ростислав Гайдов',
+    '+79384540828': 'Ростислав Гайдов (рабочий)',
+    '+79167809552': 'Илья Крестелев',
+    '+79037491052': 'Евгений Новиков',
+    '+79104272196': 'Дамир Кирамов',
+    '+79189109766': 'Николай Абашидзе',
+    '+79384540826': 'Николай Абашидзе (рабочий)',
+    '+79787617620': 'Михаил Медведев',
+    '+79384540836': 'Михаил Медведев (рабочий)'
+}
+
 
 def create_connection(db_file):
     conn = None
@@ -75,6 +87,13 @@ def get_phone_info(phone_number):
         return None
 
 
+def get_owner_name(phone_num):
+    if phone_num in PHONE_NAMES:
+        return PHONE_NAMES[phone_num]
+    else:
+        return "Somebody"
+
+
 @app.errorhandler(400)
 def query_format_error(e):
     return jsonify(error=str(e)), 400
@@ -113,8 +132,10 @@ def getinfo():
         if re.search(pattern_hash, query_string):
             data = get_phone_info(get_phone_by_hash(conn, query_string))
             if data is not None:
-                data['phone'] = get_phone_by_hash(conn, query_string)
+                phone = get_phone_by_hash(conn, query_string)
+                data['phone'] = phone
                 data['hash'] = query_string
+                data['owner'] = get_owner_name(phone)
             else:
                 abort(404, description="Unknown hash value")
         else:
@@ -126,6 +147,7 @@ def getinfo():
             if data is not None:
                 data['phone'] = phone
                 data['hash'] = get_hash_by_phone(conn, query_string)
+                data['owner'] = get_owner_name(phone)
             else:
                 abort(404, description="Unknown phone number")
         else:
@@ -135,4 +157,4 @@ def getinfo():
 
     conn.close()
 
-    return jsonify(phone=data['phone'], phone_operator=data['operator'], phone_region=data['region'], hash=data['hash'])
+    return jsonify(phone=data['phone'], phone_operator=data['operator'], phone_region=data['region'], hash=data['hash'], owner=data['owner'])

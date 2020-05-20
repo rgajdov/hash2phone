@@ -97,7 +97,10 @@ def get_phone_info(phone_number):
         data = {}
         try:
             response = requests.get(API_URL, params=payload)
-            data = json.loads(response.text)
+            if response.status_code == 200:
+                data = json.loads(response.text)
+            else:
+                return response.status_code
         except requests.exceptions.TooManyRedirects:
             abort(500, description="Too many redirects")
         return data
@@ -137,6 +140,7 @@ def query_form():
 def getinfo():
 
     data = {}
+    phone_info = 0
 
     query_type = request.args.get('t', 0)
     query_string = request.args.get('q', 0)
@@ -148,9 +152,9 @@ def getinfo():
 
     if query_type == "1":
         if re.search(pattern_hash, query_string):
-            data = get_phone_info(get_phone_by_hash(conn, query_string))
-            if data is not None:
-                phone = get_phone_by_hash(conn, query_string)
+            phone_info = get_phone_info(get_phone_by_hash(conn, query_string))
+            phone = get_phone_by_hash(conn, query_string)
+            if phone is not None:
                 data['phone'] = phone
                 data['hash'] = query_string
                 data['owner'] = get_owner_name(phone)
@@ -161,13 +165,10 @@ def getinfo():
     elif query_type == "2":
         if re.search(pattern_phone, query_string):
             phone = "+7" + query_string
-            data = get_phone_info(phone)
-            if data is not None:
-                data['phone'] = phone
-                data['hash'] = get_hash_by_phone(conn, query_string)
-                data['owner'] = get_owner_name(phone)
-            else:
-                abort(404, description="Unknown phone number")
+            phone_info = get_phone_info(phone)
+            data['phone'] = phone
+            data['hash'] = get_hash_by_phone(conn, query_string)
+            data['owner'] = get_owner_name(phone)
         else:
             abort(400, description="Phone number format error")
     else:
@@ -175,4 +176,7 @@ def getinfo():
 
     conn.close()
 
-    return jsonify(phone=data['phone'], phone_operator=data['operator'], phone_region=data['region'], hash=data['hash'], owner=data['owner'])
+    if phone_info is dict:
+        return jsonify(phone=data['phone'], phone_operator=phone_info['operator'], phone_region=phone_info['region'], hash=data['hash'], owner=data['owner'])
+    else:
+        return jsonify(phone=data['phone'], hash=data['hash'], owner=data['owner'])
